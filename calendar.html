@@ -159,55 +159,119 @@
         const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
         const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
         
-        function getJulianDay(dd, mm, yyyy) {
-            let a = Math.floor((14 - mm) / 12);
+        function INT(d) { return Math.floor(d); }
+
+        function jdFromDate(dd, mm, yyyy) {
+            let a = INT((14 - mm) / 12);
             let y = yyyy + 4800 - a;
             let m = mm + 12 * a - 3;
-            let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-            if (jd < 2299161) {
-                jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
-            }
+            let jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - INT(y / 100) + INT(y / 400) - 32045;
+            if (jd < 2299161) jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - 32083;
             return jd;
         }
 
-        // Do thuật toán tính pha mặt trăng quá phức tạp để thu gọn vào 1 file nhỏ mà vẫn chính xác 100%, 
-        // ta sử dụng một bộ chuyển đổi xấp xỉ tỷ lệ cao gọn nhẹ cho Client-side 
-        // dựa trên chu kỳ 19 năm (Metonic cycle) và số ngày cơ sở.
-        // *Lưu ý: Dưới đây là hàm chuyển đổi tính toán đơn giản hóa phục vụ giao diện độc lập.
+        function getSunLongitude(dayNumber, timeZone) {
+            let t = (dayNumber - 2451545.0) / 36525.0;
+            let t2 = t * t;
+            let dr = Math.PI / 180.0;
+            let l = 280.460 + 36000.770 * t;
+            let g = 357.528 + 35999.050 * t;
+            let lambda = l + (1.914602 - 0.004817 * t - 0.000014 * t2) * Math.sin(g * dr) + (0.019993 - 0.000101 * t) * Math.sin(2.0 * g * dr) + 0.000289 * Math.sin(3.0 * g * dr);
+            while (lambda < 0.0) lambda += 360.0;
+            while (lambda >= 360.0) lambda -= 360.0;
+            return lambda;
+        }
+
+        function getNewMoonDay(k, timeZone) {
+            let t = k / 1236.85;
+            let t2 = t * t;
+            let t3 = t2 * t;
+            let dr = Math.PI / 180.0;
+            let jpe = 2415020.75933 + 29.53058868 * k + 0.0001178 * t2 - 0.000000155 * t3;
+            jpe = jpe + 0.00033 * Math.sin((166.56 + 132.87 * t - 0.009173 * t2) * dr);
+            let m = 359.2242 + 29.10535608 * k - 0.0000333 * t2 - 0.00000347 * t3;
+            let mprime = 306.0253 + 385.81691806 * k + 0.0107306 * t2 + 0.00001236 * t3;
+            let f = 21.2964 + 390.67050646 * k - 0.0016528 * t2 - 0.00000239 * t3;
+            let c1 = (0.1734 - 0.000393 * t) * Math.sin(m * dr) + 0.0021 * Math.sin(2 * m * dr);
+            let c2 = -0.4068 * Math.sin(mprime * dr) + 0.0161 * Math.sin(2 * mprime * dr);
+            let c3 = -0.0004 * Math.sin(3 * mprime * dr);
+            let c4 = 0.0104 * Math.sin(2 * f * dr) - 0.0051 * Math.sin((m + mprime) * dr);
+            let c5 = -0.0074 * Math.sin((m - mprime) * dr) + 0.0004 * Math.sin((2 * f + m) * dr);
+            let c6 = -0.0004 * Math.sin((2 * f - m) * dr) - 0.0006 * Math.sin((2 * f + mprime) * dr);
+            let c7 = 0.0010 * Math.sin((2 * f - mprime) * dr) + 0.0005 * Math.sin((m + 2 * mprime) * dr);
+            let jdnew = jpe + c1 + c2 + c3 + c4 + c5 + c6 + c7;
+            return INT(jdnew + 0.5 + timeZone / 24.0);
+        }
+
+        function getLunarMonth11(yy, timeZone) {
+            let off = jdFromDate(31, 12, yy) - 2415021.076998695;
+            let k = INT(off / 29.530588853);
+            let nm = getNewMoonDay(k, timeZone);
+            let sunLong = getSunLongitude(nm - 0.5 - timeZone / 24.0, timeZone);
+            if (sunLong >= 270.0) nm = getNewMoonDay(k - 1, timeZone);
+            return nm;
+        }
+
+        function getLeapMonthOffset(a11, timeZone) {
+            let k = INT((a11 - 2415021.076998695) / 29.530588853);
+            let last = 0, i = 1, arc = 0;
+            arc = INT(getSunLongitude(getNewMoonDay(k + i, timeZone) - 0.5 - timeZone / 24.0, timeZone) / 30.0);
+            do {
+                last = arc;
+                i++;
+                arc = INT(getSunLongitude(getNewMoonDay(k + i, timeZone) - 0.5 - timeZone / 24.0, timeZone) / 30.0);
+            } while (arc != last && i < 14);
+            return i - 1;
+        }
+
+        function convertSolar2Lunar(dd, mm, yyyy, timeZone) {
+            let dayNumber = jdFromDate(dd, mm, yyyy);
+            let k = INT((dayNumber - 2415021.076998695) / 29.530588853);
+            let monthStart = getNewMoonDay(k, timeZone);
+            if (monthStart > dayNumber) {
+                k--;
+                monthStart = getNewMoonDay(k, timeZone);
+            }
+            let a11 = getLunarMonth11(yyyy, timeZone);
+            let b11 = a11;
+            if (a11 >= monthStart) {
+                a11 = getLunarMonth11(yyyy - 1, timeZone);
+            } else {
+                b11 = getLunarMonth11(yyyy + 1, timeZone);
+            }
+            let day = dayNumber - monthStart + 1;
+            let diff = INT((monthStart - a11) / 29);
+            let month = diff + 11;
+            if (b11 - a11 > 365) {
+                let leapMonthOffset = getLeapMonthOffset(a11, timeZone);
+                if (diff >= leapMonthOffset) month = diff + 10;
+            }
+            if (month > 12) month = month - 12;
+            let year = yyyy;
+            if (month >= 11 && diff < 4) year = yyyy - 1;
+            return { day, month, year };
+        }
+
         function getLunarDateFromSolar(dd, mm, yyyy) {
-            let jd = getJulianDay(dd, mm, yyyy);
+            let jd = jdFromDate(dd, mm, yyyy);
             
-            // Tính Can Chi (Chính xác 100%)
+            // Tính toán chuẩn theo Thiên văn học múi giờ +7 (Việt Nam)
+            let lunarInfo = convertSolar2Lunar(dd, mm, yyyy, 7.0);
+            let lunarDay = lunarInfo.day;
+            let lunarMonth = lunarInfo.month;
+            let lunarYear = lunarInfo.year;
+
+            // Tính Can Chi chính xác
             let canDay = CAN[(jd + 9) % 10];
             let chiDay = CHI[(jd + 1) % 12];
+            let canYear = CAN[(lunarYear + 6) % 10];
+            let chiYear = CHI[(lunarYear + 8) % 12];
             
-            let canYear = CAN[(yyyy + 6) % 10];
-            let chiYear = CHI[(yyyy + 8) % 12];
-            
-            let canMonth = CAN[(yyyy * 12 + mm + 3) % 10]; 
-            let chiMonth = CHI[(mm + 1) % 12]; // Tháng giêng là Dần (index 2)
-
-            // Tính toán Ngày Âm Lịch (Bản thu gọn tính theo chu kỳ Trăng)
-            // Mốc tham chiếu: 1/1/1900 Dương lịch là 1/11/1899 Âm lịch (Kỷ Hợi) - New moon
-            const SYNODIC_MONTH = 29.530588853;
-            const BASE_JD = 2415020; // 1/1/1900
-            
-            let daysSinceBase = jd - BASE_JD;
-            let lunarMonthsSinceBase = daysSinceBase / SYNODIC_MONTH;
-            
-            let currentLunarMonthPhase = daysSinceBase % SYNODIC_MONTH;
-            let lunarDay = Math.floor(currentLunarMonthPhase) + 1; // +1 vì mùng 1 bắt đầu từ 1
-            if(lunarDay > 30) lunarDay = 30; // Chặn lỗi làm tròn
-            
-            // Ước lượng tháng âm (có sai số trong năm nhuận, nhưng dùng tạm cho giao diện độc lập)
-            let lunarMonth = mm; 
-            let lunarYear = yyyy;
-            
-            // Nếu Dương lịch đầu năm (Tháng 1,2) mà ngày âm lùi về chu kỳ trước
-            if (mm < 3 && lunarDay > 20 && dd < 20) {
-                lunarYear = yyyy - 1;
-                lunarMonth = 12;
-            }
+            // Tháng Can: Phụ thuộc vào Can của năm
+            let yearIndex = (lunarYear + 6) % 10;
+            let monthCanIndex = (yearIndex * 2 + lunarMonth + 1) % 10;
+            let canMonth = CAN[monthCanIndex]; 
+            let chiMonth = CHI[(lunarMonth + 1) % 12]; 
 
             return {
                 day: lunarDay,
@@ -215,11 +279,9 @@
                 year: lunarYear,
                 canDay: canDay, chiDay: chiDay,
                 canMonth: canMonth, chiMonth: chiMonth,
-                canYear: canYear, chiYear: chiYear,
-                isLeap: false // Giản lược
+                canYear: canYear, chiYear: chiYear
             };
         }
-
 
         /** ==========================================
          * QUẢN LÝ STATE VÀ RENDER GIAO DIỆN
