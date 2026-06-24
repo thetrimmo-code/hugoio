@@ -40,6 +40,15 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        /* Hiệu ứng mượt khi thêm tin mới */
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .new-article-anim {
+            animation: slideDownFade 0.6s ease-out forwards;
+        }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen flex flex-col">
@@ -47,14 +56,25 @@
     <!-- Header / Navbar -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
+            <!-- Thêm thẻ a bao bọc logo để click tải lại trang -->
+            <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
                     H
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight"> </h1>
-            </div>
-            <div class="text-sm font-medium text-gray-500" id="current-date">
-                <!-- Ngày giờ hiện tại sẽ được chèn bằng JS -->
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight"></h1>
+            </a>
+            <div class="flex items-center gap-4">
+                <!-- Chỉ báo đang cập nhật ngầm -->
+                <div id="refresh-indicator" class="hidden items-center text-xs font-medium text-blue-600">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Đang tải tin mới...
+                </div>
+                <div class="text-sm font-medium text-gray-500" id="current-date">
+                    <!-- Ngày giờ hiện tại -->
+                </div>
             </div>
         </div>
     </header>
@@ -74,12 +94,15 @@
         
         <div class="flex items-center justify-between mb-8 border-b pb-4">
             <h3 class="text-2xl font-bold text-gray-800 border-l-4 border-blue-600 pl-3">Tin Tới Tấp</h3>
-            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium">Tự động cập nhật</span>
+            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                Trực tiếp cập nhật
+            </span>
         </div>
 
         <!-- Khung chứa danh sách tin tức -->
         <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Skeleton Loading (sẽ bị xóa khi tải xong) -->
+            <!-- Skeleton Loading ban đầu -->
             <div class="bg-white rounded-xl shadow-md overflow-hidden loading-card">
                 <div class="h-48 skeleton"></div>
                 <div class="p-5">
@@ -97,6 +120,17 @@
             <div class="bg-white rounded-xl shadow-md overflow-hidden loading-card hidden lg:block">
                 <div class="h-48 skeleton"></div>
                 <div class="p-5"><div class="h-4 skeleton mb-2 w-1/4"></div><div class="h-6 skeleton mb-4 w-full"></div><div class="h-6 skeleton mb-4 w-5/6"></div><div class="h-4 skeleton w-full mb-2"></div></div>
+            </div>
+        </div>
+        
+        <!-- Vùng kích hoạt tải thêm tin (Scroll Trigger) -->
+        <div id="scroll-trigger" class="w-full h-20 flex items-center justify-center mt-8">
+            <div id="loading-more-spinner" class="hidden items-center text-gray-500">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang tải thêm tin...
             </div>
         </div>
 
@@ -124,121 +158,130 @@
         updateDate();
 
         // --- 2. Cấu hình nguồn báo (RSS Feeds) ---
-        // Sử dụng api.rss2json.com để chuyển đổi RSS thành JSON và vượt qua lỗi CORS
         const rssSources = [
             { name: "VnExpress", url: "https://vnexpress.net/rss/tin-moi-nhat.rss" },
             { name: "Tuổi Trẻ", url: "https://tuoitre.vn/rss/tin-moi-nhat.rss" },
             { name: "Thanh Niên", url: "https://thanhnien.vn/rss/home.rss" }
         ];
-
-        const apiKey = ""; // Rss2json bản miễn phí không cần API key nếu request ít
         const apiBaseUrl = "https://api.rss2json.com/v1/api.json?rss_url=";
 
-        // --- 3. Logic lấy tin tức ---
-        async function fetchNews() {
+        // Quản lý trạng thái danh sách tin
+        let allArticles = [];
+        let displayedCount = 0;
+        const ITEMS_PER_PAGE = 12; // Số tin hiển thị thêm mỗi lần cuộn
+        let isFetching = false;
+
+        // --- 3. Hàm tạo HTML cho 1 thẻ bài viết ---
+        function generateArticleHTML(article, isNew = false) {
+            let imageUrl = article.thumbnail;
+            if (!imageUrl || imageUrl === "") {
+                const imgMatch = article.description.match(/src\s*=\s*"(.+?)"/);
+                if (imgMatch && imgMatch[1]) {
+                    imageUrl = imgMatch[1];
+                } else {
+                    imageUrl = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'; 
+                }
+            }
+
+            let cleanDesc = article.description.replace(/<[^>]+>/g, '').trim();
+            if(cleanDesc.length > 150) cleanDesc = cleanDesc.substring(0, 150) + '...';
+
+            const pubDate = new Date(article.pubDate);
+            const now = new Date();
+            const diffMs = now - pubDate;
+            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            
+            let timeString = pubDate.toLocaleDateString('vi-VN');
+            if (diffHrs < 24 && diffHrs > 0) {
+                timeString = `${diffHrs} giờ trước`;
+            } else if (diffMins < 60) {
+                timeString = diffMins <= 0 ? "Vừa xong" : `${diffMins} phút trước`;
+            }
+
+            const animClass = isNew ? "new-article-anim" : "";
+            const newBadge = isNew ? `<span class="ml-2 bg-red-500 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded animate-pulse">Mới</span>` : "";
+
+            return `
+                <article class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col group h-full ${animClass}">
+                    <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="block overflow-hidden relative h-48">
+                        <img src="${imageUrl}" alt="${article.title}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'">
+                        <div class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
+                            ${article.sourceName}
+                        </div>
+                    </a>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <div class="text-xs text-gray-500 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            ${timeString} ${newBadge}
+                        </div>
+                        <a href="${article.link}" target="_blank" rel="noopener noreferrer">
+                            <h4 class="text-xl font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                                ${article.title}
+                            </h4>
+                        </a>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow">
+                            ${cleanDesc}
+                        </p>
+                        <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold text-sm inline-flex items-center hover:text-blue-800 mt-auto">
+                            Đọc tiếp 
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </div>
+                </article>
+            `;
+        }
+
+        // --- 4. Logic Fetch Data từ API ---
+        async function fetchAllRSS() {
+            const fetchPromises = rssSources.map(source => 
+                fetch(`${apiBaseUrl}${encodeURIComponent(source.url)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'ok') {
+                            return data.items.map(item => ({ ...item, sourceName: source.name }));
+                        }
+                        return [];
+                    })
+                    .catch(err => {
+                        console.error(`Lỗi lấy dữ liệu từ ${source.name}:`, err);
+                        return []; 
+                    })
+            );
+
+            const results = await Promise.all(fetchPromises);
+            let combined = results.flat();
+            
+            // Xóa các tin trùng lặp (dựa trên link)
+            const uniqueMap = new Map();
+            combined.forEach(item => {
+                if(!uniqueMap.has(item.link)) {
+                    uniqueMap.set(item.link, item);
+                }
+            });
+            combined = Array.from(uniqueMap.values());
+
+            // Sắp xếp bài viết theo thời gian (mới nhất lên đầu)
+            combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+            return combined;
+        }
+
+        // --- 5. Logic Khởi tạo trang ban đầu ---
+        async function initNews() {
             const container = document.getElementById('news-container');
             const errorMsg = document.getElementById('error-message');
-            let allArticles = [];
-
+            
             try {
-                // Tải dữ liệu từ tất cả các nguồn cùng lúc (Promise.all)
-                const fetchPromises = rssSources.map(source => 
-                    fetch(`${apiBaseUrl}${encodeURIComponent(source.url)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'ok') {
-                                // Thêm tên báo vào từng bài viết
-                                return data.items.map(item => ({ ...item, sourceName: source.name }));
-                            }
-                            return [];
-                        })
-                        .catch(err => {
-                            console.error(`Lỗi lấy dữ liệu từ ${source.name}:`, err);
-                            return []; // Trả về mảng rỗng nếu lỗi 1 nguồn để không chết toàn trang
-                        })
-                );
-
-                const results = await Promise.all(fetchPromises);
+                allArticles = await fetchAllRSS();
                 
-                // Gộp tất cả các mảng bài viết lại
-                allArticles = results.flat();
+                if(allArticles.length === 0) throw new Error("Không có bài viết nào");
 
-                // Sắp xếp bài viết theo thời gian (mới nhất lên đầu)
-                allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                container.innerHTML = ''; // Xóa skeleton
+                loadMoreArticles(); // Tải mẻ đầu tiên
+                setupIntersectionObserver(); // Cài đặt cuộn để tải thêm
 
-                // Lấy khoảng 30 tin mới nhất để hiển thị
-                const topArticles = allArticles.slice(0, 30);
-
-                // --- 4. Hiển thị ra giao diện ---
-                // Xóa skeleton loaders
-                container.innerHTML = '';
-
-                if(topArticles.length === 0) {
-                    throw new Error("Không có bài viết nào");
-                }
-
-                topArticles.forEach(article => {
-                    // Trích xuất ảnh (nhiều báo Việt Nam giấu ảnh trong thẻ description)
-                    let imageUrl = article.thumbnail;
-                    if (!imageUrl || imageUrl === "") {
-                        const imgMatch = article.description.match(/src\s*=\s*"(.+?)"/);
-                        if (imgMatch && imgMatch[1]) {
-                            imageUrl = imgMatch[1];
-                        } else {
-                            // Ảnh mặc định nếu không tìm thấy
-                            imageUrl = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'; 
-                        }
-                    }
-
-                    // Trích xuất mô tả ngắn gọn (loại bỏ thẻ HTML rác từ RSS)
-                    let cleanDesc = article.description.replace(/<[^>]+>/g, '').trim();
-                    if(cleanDesc.length > 150) cleanDesc = cleanDesc.substring(0, 150) + '...';
-
-                    // Tính toán thời gian tương đối (VD: 2 giờ trước)
-                    const pubDate = new Date(article.pubDate);
-                    const now = new Date();
-                    const diffMs = now - pubDate;
-                    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-                    const diffMins = Math.floor(diffMs / (1000 * 60));
-                    
-                    let timeString = pubDate.toLocaleDateString('vi-VN');
-                    if (diffHrs < 24 && diffHrs > 0) {
-                        timeString = `${diffHrs} giờ trước`;
-                    } else if (diffMins < 60) {
-                        timeString = `${diffMins} phút trước`;
-                    }
-
-                    // Tạo thẻ bài viết
-                    const articleCard = `
-                        <article class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col group h-full">
-                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="block overflow-hidden relative h-48">
-                                <img src="${imageUrl}" alt="${article.title}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'">
-                                <div class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
-                                    ${article.sourceName}
-                                </div>
-                            </a>
-                            <div class="p-5 flex flex-col flex-grow">
-                                <div class="text-xs text-gray-500 mb-2 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    ${timeString}
-                                </div>
-                                <a href="${article.link}" target="_blank" rel="noopener noreferrer">
-                                    <h4 class="text-xl font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-                                        ${article.title}
-                                    </h4>
-                                </a>
-                                <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow">
-                                    ${cleanDesc}
-                                </p>
-                                <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold text-sm inline-flex items-center hover:text-blue-800 mt-auto">
-                                    Đọc tiếp 
-                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                </a>
-                            </div>
-                        </article>
-                    `;
-                    container.innerHTML += articleCard;
-                });
+                // Khởi động trình làm mới tự động (Mỗi 60 giây)
+                setInterval(autoRefreshNews, 60000); 
 
             } catch (error) {
                 console.error("Lỗi tổng thể:", error);
@@ -247,8 +290,96 @@
             }
         }
 
-        // Bắt đầu tải tin tức
-        fetchNews();
+        // --- 6. Load thêm tin khi cuộn xuống (Infinite Scroll) ---
+        function loadMoreArticles() {
+            if (displayedCount >= allArticles.length) {
+                document.getElementById('loading-more-spinner').classList.add('hidden');
+                return; // Đã hết tin
+            }
+            
+            const spinner = document.getElementById('loading-more-spinner');
+            spinner.classList.remove('hidden');
+            spinner.classList.add('flex');
+
+            // Giả lập độ trễ mạng nhẹ để thấy hiệu ứng loading
+            setTimeout(() => {
+                const container = document.getElementById('news-container');
+                const nextBatch = allArticles.slice(displayedCount, displayedCount + ITEMS_PER_PAGE);
+                
+                let htmlStr = '';
+                nextBatch.forEach(article => {
+                    htmlStr += generateArticleHTML(article);
+                });
+                
+                container.insertAdjacentHTML('beforeend', htmlStr);
+                displayedCount += nextBatch.length;
+                
+                if (displayedCount >= allArticles.length) {
+                    spinner.classList.add('hidden');
+                    spinner.classList.remove('flex');
+                    document.getElementById('scroll-trigger').innerHTML = '<p class="text-gray-400 text-sm">Bạn đã xem hết tin hôm nay.</p>';
+                }
+            }, 500);
+        }
+
+        function setupIntersectionObserver() {
+            const options = {
+                root: null,
+                rootMargin: '100px', // Bắt đầu tải khi còn cách đáy 100px
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    loadMoreArticles();
+                }
+            }, options);
+
+            observer.observe(document.getElementById('scroll-trigger'));
+        }
+
+        // --- 7. Tự động kiểm tra & Chèn tin mới (Background Auto-Refresh) ---
+        async function autoRefreshNews() {
+            if (isFetching) return;
+            isFetching = true;
+            
+            const refreshIndicator = document.getElementById('refresh-indicator');
+            refreshIndicator.classList.remove('hidden');
+            refreshIndicator.classList.add('flex');
+
+            try {
+                const latestArticles = await fetchAllRSS();
+                
+                // So sánh để tìm ra những tin chưa từng có trong mảng allArticles hiện tại
+                const existingLinks = new Set(allArticles.map(a => a.link));
+                const freshArticles = latestArticles.filter(a => !existingLinks.has(a.link));
+
+                if (freshArticles.length > 0) {
+                    // Cập nhật lại mảng tổng
+                    allArticles = [...freshArticles, ...allArticles];
+                    displayedCount += freshArticles.length; // Tăng offset
+                    
+                    const container = document.getElementById('news-container');
+                    
+                    // Chèn từng bài viết mới lên đỉnh (reverse để theo đúng thứ tự)
+                    freshArticles.reverse().forEach(article => {
+                        const newHtml = generateArticleHTML(article, true);
+                        container.insertAdjacentHTML('afterbegin', newHtml);
+                    });
+                }
+            } catch (error) {
+                console.error("Lỗi khi auto-refresh:", error);
+            } finally {
+                isFetching = false;
+                setTimeout(() => {
+                    refreshIndicator.classList.remove('flex');
+                    refreshIndicator.classList.add('hidden');
+                }, 2000); // Ẩn indicator sau 2s
+            }
+        }
+
+        // Chạy khởi tạo
+        initNews();
 
     </script>
 </body>
