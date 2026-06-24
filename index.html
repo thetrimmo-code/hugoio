@@ -91,7 +91,7 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <!-- Game 1: Hugo Leo Dây -->
+                <!-- Game 1: Khỉ Leo Dây -->
                 <a href="javascript:void(0)" onclick="startGame(1)" class="game-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-green-400 flex flex-col group relative">
                     <div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10 animate-pulse">HOT</div>
                     <div class="h-40 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative overflow-hidden">
@@ -99,20 +99,20 @@
                         <div class="absolute bottom-2 right-2 bg-black/30 backdrop-blur-sm text-white text-[10px] font-pixel px-2 py-1 rounded">ARCADE</div>
                     </div>
                     <div class="p-5 flex-grow flex flex-col">
-                        <h4 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">Hugo Leo Dây</h4>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">Khỉ Leo Dây</h4>
                         <p class="text-sm text-gray-500 mb-4 flex-grow">Lách qua các chướng ngại vật đang rơi xuống để sinh tồn trên dây leo!</p>
                         <button class="w-full py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 shadow-md transition-colors">Chơi Ngay</button>
                     </div>
                 </a>
 
-                <!-- Game 2: Hugo Cưỡi Đà Điểu -->
+                <!-- Game 2: Lạc đà sac mạc -->
                 <a href="javascript:void(0)" onclick="startGame(2)" class="game-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-yellow-400 flex flex-col group">
                     <div class="h-40 bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center relative overflow-hidden">
                         <svg class="w-20 h-20 text-white opacity-90 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         <div class="absolute bottom-2 right-2 bg-black/30 backdrop-blur-sm text-white text-[10px] font-pixel px-2 py-1 rounded">RUNNER</div>
                     </div>
                     <div class="p-5 flex-grow flex flex-col">
-                        <h4 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-500 transition-colors">Cưỡi Đà Điểu</h4>
+                        <h4 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-500 transition-colors">Lạc đà sa mạc</h4>
                         <p class="text-sm text-gray-500 mb-4 flex-grow">Nhảy qua các chướng ngại vật trên sa mạc khắc nghiệt.</p>
                         <button class="w-full py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors">Chơi Ngay</button>
                     </div>
@@ -269,7 +269,7 @@
         let score = 0;
         let frameCount = 0;
         let speed = 3;
-        let currentGameType = 1; // 1: Dây, 2: Đà Điểu, 3: Trực Thăng
+        let currentGameType = 1; // 1: Dây, 2: Lạc đà, 3: Trực Thăng
 
         // State Objects
         let player = {}; 
@@ -301,12 +301,12 @@
             
             // UI Cập nhật theo Mode
             if (type === 1) {
-                gameTitle.innerText = "HUGO LEO DÂY";
+                gameTitle.innerText = "Khỉ LEO DÂY";
                 gameTitle.className = "font-black text-lg text-green-600 font-pixel text-[12px] md:text-[14px]";
                 modalContainer.className = "bg-white rounded-3xl shadow-2xl relative w-full max-w-sm max-h-[95vh] flex flex-col border-4 border-green-500";
                 gameInstructions.innerHTML = `💻 Bấm phím <kbd class="bg-white border px-1 rounded">←</kbd> <kbd class="bg-white border px-1 rounded">→</kbd> để né.<br>📱 Chạm <span class="text-blue-500">nửa trái/phải</span> màn hình.`;
             } else if (type === 2) {
-                gameTitle.innerText = "HUGO ĐÀ ĐIỂU";
+                gameTitle.innerText = "Lạc đà Sa mạc";
                 gameTitle.className = "font-black text-lg text-orange-500 font-pixel text-[12px] md:text-[14px]";
                 modalContainer.className = "bg-white rounded-3xl shadow-2xl relative w-full max-w-sm max-h-[95vh] flex flex-col border-4 border-orange-400";
                 gameInstructions.innerHTML = `💻 Bấm phím <kbd class="bg-white border px-1 rounded">Space / ↑</kbd> để nhảy.<br>📱 Chạm vào <span class="text-blue-500">bất kỳ đâu</span> để nhảy.`;
