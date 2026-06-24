@@ -2,68 +2,56 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Không tìm thấy trang - Hugo.io.vn</title>
     
-    <!-- Tải Tailwind CSS để dựng giao diện -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Import Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        'lunar-red': '#B91C1C', 
+                        'lunar-gold': '#F59E0B', 
+                        'paper': '#fdfbf7' 
+                    },
+                    fontFamily: { 
+                        sans: ['Roboto', 'sans-serif'], 
+                        serif: ['Noto Serif', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Xám nhạt giống trang chủ */
+            background-color: #f3f4f6;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d1d5db' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); 
         }
         
-        /* Hiệu ứng trôi nổi nhẹ cho bé ma 404 */
+        /* Hiệu ứng trôi nổi nhẹ cho khối 404 */
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
+            50% { transform: translateY(-12px); }
             100% { transform: translateY(0px); }
         }
         .animate-float {
-            animation: float 3.5s ease-in-out infinite;
-        }
-
-        /* Hiệu ứng chớp nháy cho ngôi sao */
-        @keyframes twinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
-        }
-        .animate-twinkle {
-            animation: twinkle 2s ease-in-out infinite;
-        }
-        .delay-150 {
-            animation-delay: 1.5s;
+            animation: float 4s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="text-gray-800 min-h-screen flex flex-col">
+<body class="font-sans text-gray-800 min-h-screen flex flex-col">
 
-    <!-- Header / Navbar (Giữ nguyên từ trang chủ) -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                    H
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 tracking-tight"> </h1>
-            </a>
-            <div class="text-sm font-medium text-gray-500" id="current-date">
-                <!-- Ngày giờ hiện tại sẽ được chèn bằng JS -->
-            </div>
-        </div>
-    </header>
+    <!-- Chỗ để tải menu -->
+    <div id="navbar-placeholder"></div>
 
-    <!-- Main Content - 404 Area -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full flex items-center justify-center">
         
         <div class="text-center px-4">
-            <!-- Cute SVG Graphic -->
+            
             <div class="flex justify-center mb-2 relative">
                 <svg class="w-48 h-48 sm:w-64 sm:h-64 animate-float drop-shadow-xl" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <!-- Bóng dưới cốc -->
@@ -123,22 +111,19 @@
                 </svg>
             </div>
 
-            <!-- 404 Text -->
             <h2 class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 tracking-tighter mb-4 drop-shadow-sm">404</h2>
             
-            <!-- Message -->
             <h3 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3">Meo meo... Bạn đi lạc rồi kìa!</h3>
             <p class="text-gray-500 max-w-md mx-auto text-lg mb-8 leading-relaxed">
-                Chú mèo con ngụy trang trong cốc nước đã giấu mất trang bạn đang tìm. Hãy cùng quay lại để đọc tin tức nhé!
+                Chú mèo con ngụy trang trong cốc nước đã giấu mất trang bạn đang tìm. Hãy cùng quay lại để tiếp tục lướt web nhé!
             </p>
             
-            <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-full text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    Về Nhà Thôi
+                    Về Trang Chủ
                 </a>
                 <button onclick="history.back()" class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-blue-100 text-base font-semibold rounded-full text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-200 shadow-sm transition-all duration-300 transform hover:-translate-y-1">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -151,22 +136,20 @@
 
     </main>
 
-    <!-- Footer (Giữ nguyên từ trang chủ) -->
-    <footer class="bg-gray-800 text-white text-center py-6 mt-auto">
-        <p class="text-sm text-gray-400">
-            &copy; <span id="year"></span> hugo.io.vn - Dữ liệu được tổng hợp tự động từ RSS các báo.
-        </p>
+    <footer class="bg-gray-800 text-white text-center py-6 mt-auto relative z-10">
+        <p class="text-sm text-gray-400">&copy; <span id="year-footer"></span> Hugo.io.vn - Trạm Trò chơi & Tiện ích.</p>
     </footer>
 
     <script>
-        // Cập nhật Ngày giờ cho header và năm cho footer
-        function updateDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').innerText = now.toLocaleDateString('vi-VN', options);
-            document.getElementById('year').innerText = now.getFullYear();
-        }
-        updateDate();
+        document.getElementById('year-footer').innerText = new Date().getFullYear();
+
+        // Tự động load menu từ file menu.html
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/menu.html')
+                .then(r => r.ok ? r.text() : '')
+                .then(h => { if (h) document.getElementById('navbar-placeholder').innerHTML = h; })
+                .catch(err => console.error('Lỗi khi tải menu:', err));
+        });
     </script>
 </body>
 </html>
