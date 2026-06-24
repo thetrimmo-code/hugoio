@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Giới thiệu - Hugo.io.vn</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        'lunar-red': '#B91C1C', 
+                        'lunar-gold': '#F59E0B', 
+                        'paper': '#fdfbf7' 
+                    },
+                    fontFamily: { 
+                        sans: ['Roboto', 'sans-serif'], 
+                        serif: ['Noto Serif', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d1d5db' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); 
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(185, 28, 28, 0.15), 0 8px 10px -6px rgba(185, 28, 28, 0.1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Chỗ để tải menu từ file menu.html -->
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex flex-col gap-10">
+        
+        <!-- Header Section -->
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-black font-serif text-lunar-red mb-6 drop-shadow-sm">Về Hugo.io.vn</h1>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                Nơi những kỷ niệm tuổi thơ sống lại và là người bạn đồng hành với các tiện ích hàng ngày cho người Việt.
+            </p>
+        </div>
+
+        <!-- Story / About Section -->
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col md:flex-row">
+            <div class="md:w-5/12 bg-lunar-red p-8 flex flex-col justify-center text-white relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjY2NjIi8+PC9zdmc+');"></div>
+                <div class="relative z-10 text-center">
+                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border-4 border-lunar-gold">
+                        <span class="text-5xl font-black text-lunar-red">H</span>
+                    </div>
+                    <h3 class="text-2xl font-serif font-bold mb-2">Câu chuyện</h3>
+                    <h4 class="text-lunar-gold font-medium mb-4">Khởi nguồn từ hoài niệm</h4>
+                    <p class="text-red-100 text-sm leading-relaxed">
+                        Thế hệ 8x, 9x lớn lên cùng những chương trình truyền hình tương tác qua phím điện thoại bàn. Chú lùn Hugo đã trở thành một phần ký ức khó quên.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="md:w-7/12 p-8 md:p-10 flex flex-col justify-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 font-serif">Sứ mệnh của chúng tôi</h3>
+                <div class="space-y-4 text-gray-600 leading-relaxed">
+                    <p>
+                        <strong>Hugo.io.vn</strong> được lập ra không phải như một cổng game đồ sộ, mà là một "trạm dừng chân" nhỏ nhắn trên internet. Chúng tôi muốn tạo ra một không gian:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><span class="text-gray-800 font-medium">Lưu giữ tuổi thơ:</span> Phục dựng lại các mini-game mang âm hưởng retro, đơn giản nhưng cuốn hút.</li>
+                        <li><span class="text-gray-800 font-medium">Tiện ích thiết thực:</span> Cung cấp Lịch Vạn Niên chuẩn Việt Nam với tốc độ siêu nhanh, không phụ thuộc kết nối bên ngoài.</li>
+                        <li><span class="text-gray-800 font-medium">Sạch sẽ & Tôn trọng:</span> Hoàn toàn <strong>không có quảng cáo</strong> rác hay popup khó chịu làm phiền trải nghiệm của bạn.</li>
+                    </ul>
+                    <p class="pt-4 italic border-t border-gray-100 text-gray-500">
+                        "Giữa thế giới web ồn ào và ngập tràn thông tin, hy vọng bạn tìm thấy một phút giây bình yên và vui vẻ tại đây."
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Features -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+            
+            <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-blue-500 card-hover">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h4 class="text-xl font-bold text-gray-900 mb-3">Giải Trí Retro</h4>
+                <p class="text-gray-600 text-sm">Trải nghiệm lại các tựa game vượt chướng ngại vật cực kỳ đơn giản nhưng đầy thử thách, hỗ trợ cả PC và Mobile.</p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-lunar-red card-hover">
+                <div class="w-12 h-12 bg-red-100 text-lunar-red rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h4 class="text-xl font-bold text-gray-900 mb-3">Lịch Vạn Niên</h4>
+                <p class="text-gray-600 text-sm">Thuật toán quy đổi Âm - Dương lịch chuẩn xác 100%, được lập trình chạy mượt mà ngay trên trình duyệt của bạn.</p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-md border-t-4 border-green-500 card-hover">
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <h4 class="text-xl font-bold text-gray-900 mb-3">An Toàn & Bảo Mật</h4>
+                <p class="text-gray-600 text-sm">Không theo dõi dữ liệu người dùng, không quảng cáo, tốc độ tải trang nhanh nhờ tối ưu hóa tài nguyên phần mềm.</p>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-8 mb-6">
+            <a href="/" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-full text-white bg-lunar-red hover:bg-lunar-dark shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                Khám phá Trang Chủ ngay
+            </a>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-6 mt-auto relative z-10">
+        <p class="text-sm text-gray-400">&copy; <span id="year-footer"></span> Hugo.io.vn - Trạm Trò chơi & Tiện ích.</p>
+    </footer>
+
+    <script>
+        // Cập nhật năm ở Footer
+        document.getElementById('year-footer').innerText = new Date().getFullYear();
+
+        // Tự động load menu từ file menu.html
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/menu.html')
+                .then(r => r.ok ? r.text() : '')
+                .then(h => { 
+                    if (h) {
+                        document.getElementById('navbar-placeholder').innerHTML = h; 
+                        
+                        // Đánh dấu active cho link 'Giới thiệu' trên menu
+                        setTimeout(() => {
+                            const links = document.querySelectorAll('#navbar-placeholder nav a');
+                            links.forEach(link => {
+                                if(link.getAttribute('href') === '/about.html') {
+                                    link.classList.remove('hover:text-lunar-gold');
+                                    link.classList.add('text-lunar-gold', 'border-b-2', 'border-lunar-gold', 'pb-1');
+                                } else {
+                                    link.classList.add('hover:text-lunar-gold');
+                                    link.classList.remove('text-lunar-gold', 'border-b-2', 'border-lunar-gold', 'pb-1');
+                                }
+                            });
+                        }, 100);
+                    }
+                })
+                .catch(err => console.error('Lỗi khi tải menu:', err));
+        });
+    </script>
+</body>
+</html>
