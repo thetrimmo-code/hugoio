@@ -227,9 +227,10 @@
         function convertSolar2Lunar(dd, mm, yyyy, timeZone) {
             let dayNumber = jdFromDate(dd, mm, yyyy);
             let k = INT((dayNumber - 2415021.076998695) / 29.530588853);
-            let monthStart = getNewMoonDay(k, timeZone);
-            if (monthStart > dayNumber) {
-                k--;
+            let monthStart = getNewMoonDay(k + 1, timeZone);
+            if (monthStart <= dayNumber) {
+                k++;
+            } else {
                 monthStart = getNewMoonDay(k, timeZone);
             }
             let a11 = getLunarMonth11(yyyy, timeZone);
@@ -242,14 +243,21 @@
             let day = dayNumber - monthStart + 1;
             let diff = INT((monthStart - a11) / 29);
             let month = diff + 11;
+            let isLeap = false;
             if (b11 - a11 > 365) {
                 let leapMonthOffset = getLeapMonthOffset(a11, timeZone);
-                if (diff >= leapMonthOffset) month = diff + 10;
+                let leapMonth = leapMonthOffset - 2;
+                if (leapMonth < 0) leapMonth += 12;
+                if (leapMonth >= 10) leapMonth -= 1;
+                if (diff >= leapMonthOffset) {
+                    month = diff + 10;
+                    if (diff == leapMonthOffset) isLeap = true;
+                }
             }
             if (month > 12) month = month - 12;
             let year = yyyy;
             if (month >= 11 && diff < 4) year = yyyy - 1;
-            return { day, month, year };
+            return { day, month, year, isLeap };
         }
 
         function getLunarDateFromSolar(dd, mm, yyyy) {
@@ -260,6 +268,7 @@
             let lunarDay = lunarInfo.day;
             let lunarMonth = lunarInfo.month;
             let lunarYear = lunarInfo.year;
+            let isLeap = lunarInfo.isLeap;
 
             // Tính Can Chi chính xác
             let canDay = CAN[(jd + 9) % 10];
@@ -277,6 +286,7 @@
                 day: lunarDay,
                 month: lunarMonth,
                 year: lunarYear,
+                isLeap: isLeap,
                 canDay: canDay, chiDay: chiDay,
                 canMonth: canMonth, chiMonth: chiMonth,
                 canYear: canYear, chiYear: chiYear
@@ -315,7 +325,7 @@
             document.getElementById('bloc-weekday').innerText = weekdays[wd];
             
             document.getElementById('bloc-lunar-day').innerText = lunarInfo.day;
-            document.getElementById('bloc-lunar-month').innerText = lunarInfo.month;
+            document.getElementById('bloc-lunar-month').innerText = lunarInfo.month + (lunarInfo.isLeap ? " (Nhuận)" : "");
             
             document.getElementById('cc-day').innerText = `${lunarInfo.canDay} ${lunarInfo.chiDay}`;
             document.getElementById('cc-month').innerText = `${lunarInfo.canMonth} ${lunarInfo.chiMonth}`;
@@ -352,7 +362,7 @@
                 let prevM = month === 0 ? 12 : month;
                 let prevY = month === 0 ? year - 1 : year;
                 let lunar = getLunarDateFromSolar(prevD, prevM, prevY);
-                grid.innerHTML += createCell(prevD, lunar.day, lunar.month, false, false, false);
+                grid.innerHTML += createCell(prevD, lunar.day, lunar.month, false, false, false, prevY, prevM, lunar.isLeap);
             }
 
             // Ngày của tháng hiện tại
@@ -366,7 +376,7 @@
                 let currY = year;
                 let lunar = getLunarDateFromSolar(currD, currM, currY);
                 
-                grid.innerHTML += createCell(currD, lunar.day, lunar.month, true, isToday, isSelected, currY, month);
+                grid.innerHTML += createCell(currD, lunar.day, lunar.month, true, isToday, isSelected, currY, month, lunar.isLeap);
             }
 
             // Ngày của tháng sau (in mờ) để lấp đầy grid (42 ô)
@@ -377,13 +387,13 @@
                     let nextM = month === 11 ? 1 : month + 2;
                     let nextY = month === 11 ? year + 1 : year;
                     let lunar = getLunarDateFromSolar(i, nextM, nextY);
-                    grid.innerHTML += createCell(i, lunar.day, lunar.month, false, false, false);
+                    grid.innerHTML += createCell(i, lunar.day, lunar.month, false, false, false, nextY, nextM, lunar.isLeap);
                 }
             }
         }
 
         // Tạo 1 ô ngày (Cell)
-        function createCell(solarDay, lunarDay, lunarMonth, isCurrentMonth, isToday, isSelected, y, m) {
+        function createCell(solarDay, lunarDay, lunarMonth, isCurrentMonth, isToday, isSelected, y, m, isLeap) {
             let classes = "day-cell relative h-16 md:h-20 border rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ";
             
             if (!isCurrentMonth) {
@@ -397,7 +407,7 @@
 
             let lunarStr = lunarDay;
             // Hiển thị dạng "1/5" nếu là mùng 1 âm
-            if (lunarDay == 1) lunarStr = `${lunarDay}/${lunarMonth}`;
+            if (lunarDay == 1) lunarStr = `${lunarDay}/${lunarMonth}${isLeap ? 'N' : ''}`;
 
             return `
                 <div class="${classes}" ${isCurrentMonth ? `onclick="selectDate(${y}, ${m}, ${solarDay})"` : ''}>
