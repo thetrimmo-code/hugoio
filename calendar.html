@@ -33,6 +33,12 @@
         .day-selected { background-color: #FEF2F2 !important; border-color: #B91C1C !important; border-width: 2px !important; }
         .day-today .solar-num { color: #B91C1C; font-weight: bold; }
         .day-today { background-color: #FFFBEB; }
+        /* Ngày Tết / ngày lễ âm lịch lớn */
+        .day-cell.day-tet {
+            background: linear-gradient(135deg, #FFF5F5 0%, #FEF2F2 100%);
+            border-color: #FECACA;
+        }
+        .day-cell.day-tet:hover { border-color: #B91C1C; }
     </style>
 </head>
 <body class="font-sans text-gray-800 min-h-screen flex flex-col">
@@ -92,6 +98,8 @@
                             <p>Tháng: <span class="font-bold text-lunar-red" id="cc-month">--</span></p>
                             <p>Năm: <span class="font-bold text-lunar-red" id="cc-year">--</span></p>
                         </div>
+                        <!-- Badge ngày lễ -->
+                        <div id="bloc-holiday" class="mt-3 inline-block bg-red-50 border border-red-300 text-lunar-red text-sm font-bold font-serif px-3 py-1 rounded-full" style="display:none"></div>
                     </div>
                 </div>
             </div>
@@ -320,6 +328,57 @@
         }
 
         /** ==========================================
+         * NGÀY LỄ VIỆT NAM
+         * ========================================== */
+
+        // Ngày lễ dương lịch cố định: key = "DD/MM"
+        const SOLAR_HOLIDAYS = {
+            "01/01": "Tết Dương Lịch",
+            "30/04": "Giải Phóng",
+            "01/05": "Quốc Tế LĐ",
+            "02/09": "Quốc Khánh",
+            "03/02": "Ngày thành lập ĐCS",
+            "27/07": "Thương Binh LS",
+            "20/11": "Ngày Nhà Giáo",
+            "22/12": "Ngày QĐND",
+            "08/03": "Quốc Tế PN",
+            "01/06": "Quốc Tế TS",
+            "20/10": "Phụ Nữ VN"
+        };
+
+        // Ngày lễ âm lịch cố định: key = "DD/MM" (âm)
+        const LUNAR_HOLIDAYS = {
+            "29/12": "Tất Niên",
+            "30/12": "Tất Niên",  // tháng thiếu/đủ
+            "01/01": "Mùng 1 Tết",
+            "02/01": "Mùng 2 Tết",
+            "03/01": "Mùng 3 Tết",
+            "04/01": "Mùng 4 Tết",
+            "05/01": "Mùng 5 Tết",
+            "06/01": "Mùng 6 Tết",
+            "07/01": "Mùng 7 Tết",
+            "10/03": "Giỗ Tổ HV",
+            "15/01": "Rằm Tháng Giêng",
+            "15/07": "Vu Lan",
+            "23/12": "Ông Táo",
+            "15/04": "Phật Đản"
+        };
+
+        // Trả về tên ngày lễ (hoặc null nếu không phải)
+        function getHolidayName(solarD, solarM, solarY) {
+            // Kiểm tra dương lịch trước
+            const sKey = `${String(solarD).padStart(2,'0')}/${String(solarM).padStart(2,'0')}`;
+            if (SOLAR_HOLIDAYS[sKey]) return SOLAR_HOLIDAYS[sKey];
+
+            // Kiểm tra âm lịch
+            const lunar = getLunarDateFromSolar(solarD, solarM, solarY);
+            const lKey = `${String(lunar.day).padStart(2,'0')}/${String(lunar.month).padStart(2,'0')}`;
+            if (LUNAR_HOLIDAYS[lKey] && !lunar.isLeap) return LUNAR_HOLIDAYS[lKey];
+
+            return null;
+        }
+
+        /** ==========================================
          * QUẢN LÝ STATE VÀ RENDER GIAO DIỆN
          * ========================================== */
         const today = new Date();
@@ -359,6 +418,16 @@
             document.getElementById('cc-month').innerText = `${info.canMonth} ${info.chiMonth}`;
             document.getElementById('cc-year').innerText  = `${info.canYear} ${info.chiYear}`;
 
+            // Hiển thị tên ngày lễ trên Bloc
+            const holidayName = getHolidayName(d, m, y);
+            const blocHoliday = document.getElementById('bloc-holiday');
+            if (holidayName) {
+                blocHoliday.innerText = '🎉 ' + holidayName;
+                blocHoliday.style.display = '';
+            } else {
+                blocHoliday.style.display = 'none';
+            }
+
             // Đồng bộ date-picker
             const mStr = String(m).padStart(2, '0');
             const dStr = String(d).padStart(2, '0');
@@ -384,11 +453,11 @@
             // ── Ngày tháng trước (in mờ) ──────────────────────────────────
             for (let i = 0; i < firstDay; i++) {
                 let prevD = daysInPrevMonth - firstDay + i + 1;
-                // tháng trước (1-based)
-                let prevM = month === 0 ? 12 : month;           // month 0-based → tháng trước = month (vì month-1+1)
-                let prevY = month === 0 ? year - 1 : year;
-                let lunar = getLunarDateFromSolar(prevD, prevM, prevY);
-                grid.innerHTML += createCell(prevD, lunar.day, lunar.month, false, false, false, prevY, prevM - 1, lunar.isLeap);
+                // tháng trước: nếu month=0 → tháng 12 năm trước, ngược lại month-1
+                let prevM0 = month === 0 ? 11 : month - 1;  // 0-based
+                let prevY  = month === 0 ? year - 1 : year;
+                let lunar  = getLunarDateFromSolar(prevD, prevM0 + 1, prevY);
+                grid.innerHTML += createCell(prevD, lunar.day, lunar.month, false, false, false, prevY, prevM0, lunar.isLeap);
             }
 
             // ── Ngày tháng hiện tại ───────────────────────────────────────
@@ -397,7 +466,6 @@
                 let isToday    = (i === todayObj.getDate() && month === todayObj.getMonth() && year === todayObj.getFullYear());
                 let isSelected = (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear());
                 let lunar = getLunarDateFromSolar(i, month + 1, year);
-                // truyền month (0-based) cho createCell để onclick gọi selectDate đúng
                 grid.innerHTML += createCell(i, lunar.day, lunar.month, true, isToday, isSelected, year, month, lunar.isLeap);
             }
 
@@ -405,21 +473,33 @@
             const totalCells    = firstDay + daysInMonth;
             const remainingCells = 42 - totalCells;
             for (let i = 1; i <= remainingCells; i++) {
-                // tháng sau (1-based)
-                let nextM1 = month === 11 ? 1 : month + 2;
+                let nextM0 = month === 11 ? 0 : month + 1;   // 0-based
                 let nextY  = month === 11 ? year + 1 : year;
-                let lunar  = getLunarDateFromSolar(i, nextM1, nextY);
-                grid.innerHTML += createCell(i, lunar.day, lunar.month, false, false, false, nextY, nextM1 - 1, lunar.isLeap);
+                let lunar  = getLunarDateFromSolar(i, nextM0 + 1, nextY);
+                grid.innerHTML += createCell(i, lunar.day, lunar.month, false, false, false, nextY, nextM0, lunar.isLeap);
             }
         }
 
         // ── Tạo 1 ô ngày ─────────────────────────────────────────────────────
         // Quy ước: y, m (0-based) dùng trong onclick → new Date(y, m, d)
         function createCell(solarDay, lunarDay, lunarMonth, isCurrentMonth, isToday, isSelected, y, m, isLeap) {
-            let classes = "day-cell relative h-16 md:h-20 border rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ";
+            // m ở đây là 0-based (dùng cho onclick)
+            // m+1 là tháng dương thực (1-based) để tính lễ
+            const solarM1 = m + 1;
+            const holidayName = isCurrentMonth ? getHolidayName(solarDay, solarM1, y) : null;
+            const isHoliday = !!holidayName;
+            // Chủ Nhật = 0: tính day of week
+            const dow = new Date(y, m, solarDay).getDay();
+            const isSunday = (dow === 0);
+
+            let classes = "day-cell relative border rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ";
+            // Chiều cao linh hoạt để chứa nhãn lễ
+            classes += isHoliday ? "h-20 md:h-24 " : "h-16 md:h-20 ";
 
             if (!isCurrentMonth) {
                 classes += "bg-gray-50 text-gray-400 opacity-60 pointer-events-none ";
+            } else if (isHoliday) {
+                classes += "day-tet text-gray-800 hover:shadow-md ";
             } else {
                 classes += "bg-white text-gray-800 hover:shadow-md ";
             }
@@ -431,14 +511,21 @@
                 ? `${lunarDay}/${lunarMonth}${isLeap ? 'N' : ''}`
                 : lunarDay;
 
-            let solarColor = (isCurrentMonth && isToday) ? '' : '';  // màu xử lý qua class day-today
-            let lunarColor = (lunarDay == 1 || lunarDay == 15) ? 'text-lunar-red font-bold' : 'text-gray-500';
+            // Màu số dương: đỏ nếu Chủ nhật hoặc ngày lễ
+            const solarColor = (isCurrentMonth && (isToday || isHoliday || isSunday)) ? 'text-lunar-red' : '';
+            const lunarColor = (lunarDay == 1 || lunarDay == 15) ? 'text-lunar-red font-bold' : 'text-gray-400';
+
+            // Nhãn ngày lễ nhỏ (kiểu lịch 24h)
+            const holidayLabel = holidayName
+                ? `<span class="text-lunar-red font-bold leading-none" style="font-size:9px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95%;display:block;text-align:center">${holidayName}</span>`
+                : '';
 
             return `
                 <div class="${classes.trim()}"
                      ${isCurrentMonth ? `onclick="selectDate(${y}, ${m}, ${solarDay})"` : ''}>
-                    <span class="solar-num text-xl md:text-2xl font-bold font-serif">${solarDay}</span>
-                    <span class="text-xs ${lunarColor} font-serif mt-1">${lunarStr}</span>
+                    <span class="solar-num text-xl md:text-2xl font-bold font-serif ${solarColor}">${solarDay}</span>
+                    <span class="text-xs ${lunarColor} font-serif" style="margin-top:1px">${lunarStr}</span>
+                    ${holidayLabel}
                 </div>`;
         }
 
